@@ -1,0 +1,9 @@
+streamlit
+pandas
+fuzzywuzzy
+python-Levenshtein
+openpyxl             # for reading Excel files
+delta-spark          # Delta table support
+pyarrow              # Optional: for pandas-spark conversion efficiency
+databricks-sql-connector
+databricks-sdk
