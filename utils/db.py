@@ -34,15 +34,15 @@ columns = [
 
 def create_table():
     fields = ',\n'.join([f"{col} TEXT" for col in columns])
-    conn.execute(f"""
+    create_query = f"""
         CREATE TABLE IF NOT EXISTS logs_definitions (
             event_row_id TEXT PRIMARY KEY,
             {fields}
         )
-    """)
+    """
+    conn.execute(create_query)
     conn.commit()
 
-create_table()
 
 def insert_log(event_data: dict, created_by="user"):
     now = datetime.utcnow().isoformat()
