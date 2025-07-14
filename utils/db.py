@@ -62,7 +62,7 @@ def insert_log(event_data: dict, created_by="user"):
     values = [event_row_id] + list(all_data.values())
 
     query = f"""
-        INSERT INTO logs_definitions ({", ".join(column_names)}) 
+        INSERT INTO logs.db ({", ".join(column_names)}) 
         VALUES ({placeholders})
     """
 
