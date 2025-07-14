@@ -44,25 +44,31 @@ def create_table():
     conn.commit()
 
 
+from datetime import datetime
+
 def insert_log(event_data: dict, created_by="user"):
     now = datetime.utcnow().isoformat()
-    event_row_id = f"event_{now.replace(':','').replace('-','').replace('.','')}"
-    
-    all_data = {col: event_data.get(col, "") for col in columns}
-    all_data.update({
-        "created_by": created_by,
-        "created_at": now,
-        "updated_at": now
-    })
+    event_row_id = f"event_{now.replace(':', '').replace('-', '').replace('.', '')}"
 
-    columns_str = ", ".join(["event_row_id"] + list(all_data.keys()))
-    placeholders = ", ".join(["?"] * (len(all_data) + 1))
+    # Prepare data dict with default empty strings
+    all_data = {col: event_data.get(col, "") for col in columns}
+    all_data["created_by"] = created_by
+    all_data["created_at"] = now
+    all_data["updated_at"] = now
+
+    # SQL query preparation
+    column_names = ["event_row_id"] + list(all_data.keys())
+    placeholders = ", ".join(["?"] * len(column_names))
     values = [event_row_id] + list(all_data.values())
 
-    conn.execute(f"""
-        INSERT INTO logs_definitions ({columns_str}) VALUES ({placeholders})
-    """, values)
+    query = f"""
+        INSERT INTO logs_definitions ({", ".join(column_names)}) 
+        VALUES ({placeholders})
+    """
+
+    conn.execute(query, values)
     conn.commit()
+
 
 def fetch_logs(q=None, category=None):
     query = "SELECT * FROM logs_definitions WHERE 1=1"
