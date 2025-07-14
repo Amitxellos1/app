@@ -6,7 +6,6 @@ def show():
 
     with st.form("define_full_log_form"):
         st.subheader("🔹 General Information")
-        when = st.date_input("When")
         description = st.text_area("Description")
         reference = st.text_input("Reference (if any)")
         dev, qe, data = st.columns(3)
@@ -99,7 +98,6 @@ def show():
 
     if submitted:
         event_data = {
-            "when": str(when),
             "description": description,
             "reference": reference,
             "dev": dev,
