@@ -6,7 +6,7 @@ DB_FILE = "logs_definitions"
 conn = sqlite3.connect(DB_FILE, check_same_thread=False)
 
 columns = [
-    'when', 'description', 'reference', 'dev', 'qe', 'data', 'property_key',
+    'description', 'reference', 'dev', 'qe', 'data', 'property_key',
     'event_guid', 'event_coll_dts', 'event_context_guid', 'event_context_sequence', 'event_dts_start',
     'event_dts_end', 'event_workflow', 'event_category', 'event_subcategory', 'event_type',
     'event_subtype', 'event_user_guid', 'event_offline', 'event_ip', 'event_user_agent',
