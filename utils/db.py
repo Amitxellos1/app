@@ -2,7 +2,7 @@ import sqlite3
 import pandas as pd
 from datetime import datetime
 
-DB_FILE = "logs_definitions"
+DB_FILE = "logs_definitions.db"
 conn = sqlite3.connect(DB_FILE, check_same_thread=False)
 
 columns = [
@@ -43,7 +43,7 @@ def create_table():
     conn.execute(create_query)
     conn.commit()
 
-
+create_table() 
 from datetime import datetime
 
 def insert_log(event_data: dict, created_by="user"):
