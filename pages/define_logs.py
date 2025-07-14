@@ -1,7 +1,7 @@
 import streamlit as st
 from utils.db import insert_log
 
-def show_define_logs():
+def show():
     st.title("📝 Define Full Log Event")
 
     with st.form("define_full_log_form"):
