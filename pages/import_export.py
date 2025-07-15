@@ -1,5 +1,13 @@
+import io
 import streamlit as st
 from utils.excel_io import export_logs, import_logs
+
+def to_excel_bytes(df):
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False)
+    output.seek(0)
+    return output.getvalue()
 
 def show():
     st.title("📤📥 Import / Export Logs")
@@ -13,7 +21,7 @@ def show():
             df_template = export_logs(template=True)
             st.download_button(
                 label="Download Blank Template",
-                data=df_template.to_excel(index=False, engine='openpyxl'),
+                data=to_excel_bytes(df_template),
                 file_name="logs_template.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
@@ -23,7 +31,7 @@ def show():
             df_all = export_logs()
             st.download_button(
                 label="Download All Logs",
-                data=df_all.to_excel(index=False, engine='openpyxl'),
+                data=to_excel_bytes(df_all),
                 file_name="logs_data_export.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
