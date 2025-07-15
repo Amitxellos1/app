@@ -1,6 +1,7 @@
 import io
 import streamlit as st
 from utils.excel_io import export_logs, import_logs
+import pandas as pd
 
 def to_excel_bytes(df):
     output = io.BytesIO()
