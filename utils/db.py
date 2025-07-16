@@ -44,7 +44,6 @@ def create_table():
     conn.commit()
 
 create_table() 
-from datetime import datetime
 
 def insert_log(event_data: dict, created_by="user"):
     now = datetime.utcnow().isoformat()
@@ -69,6 +68,111 @@ def insert_log(event_data: dict, created_by="user"):
     conn.execute(query, values)
     conn.commit()
 
+def get_all_logs():
+    """
+    Retrieve all log events from the database
+    Returns: List of dictionaries containing all log events
+    """
+    try:
+        query = "SELECT * FROM logs_definitions ORDER BY created_at DESC"
+        cursor = conn.execute(query)
+        rows = cursor.fetchall()
+        
+        # Get column names
+        column_names = [description[0] for description in cursor.description]
+        
+        # Convert to list of dictionaries
+        logs = []
+        for row in rows:
+            log_dict = dict(zip(column_names, row))
+            # Use event_row_id as the main ID for consistency
+            log_dict['id'] = log_dict['event_row_id']
+            logs.append(log_dict)
+        
+        return logs
+    except Exception as e:
+        print(f"Error retrieving all logs: {e}")
+        return []
+
+def get_log_by_id(log_id):
+    """
+    Retrieve a specific log event by its ID
+    Args:
+        log_id (str): The event_row_id of the log event
+    Returns: Dictionary containing the log event data or None if not found
+    """
+    try:
+        query = "SELECT * FROM logs_definitions WHERE event_row_id = ?"
+        cursor = conn.execute(query, (log_id,))
+        row = cursor.fetchone()
+        
+        if row:
+            # Get column names
+            column_names = [description[0] for description in cursor.description]
+            
+            # Convert to dictionary
+            log_dict = dict(zip(column_names, row))
+            # Use event_row_id as the main ID for consistency
+            log_dict['id'] = log_dict['event_row_id']
+            return log_dict
+        
+        return None
+    except Exception as e:
+        print(f"Error retrieving log by ID {log_id}: {e}")
+        return None
+
+def update_log(log_id, event_data):
+    """
+    Update an existing log event
+    Args:
+        log_id (str): The event_row_id of the log event to update
+        event_data (dict): Dictionary containing the updated event data
+    """
+    try:
+        # Get current timestamp
+        now = datetime.utcnow().isoformat()
+        
+        # Prepare data dict with default empty strings for missing fields
+        all_data = {col: event_data.get(col, "") for col in columns}
+        all_data["updated_at"] = now
+        
+        # Keep original created_by and created_at if not provided
+        existing_log = get_log_by_id(log_id)
+        if existing_log:
+            all_data["created_by"] = event_data.get("created_by", existing_log.get("created_by", ""))
+            all_data["created_at"] = existing_log.get("created_at", now)
+        
+        # Build UPDATE query
+        set_clauses = []
+        values = []
+        
+        for col in columns:
+            set_clauses.append(f"{col} = ?")
+            values.append(all_data[col])
+        
+        # Add the WHERE clause parameter
+        values.append(log_id)
+        
+        query = f"""
+            UPDATE logs_definitions 
+            SET {', '.join(set_clauses)}
+            WHERE event_row_id = ?
+        """
+        
+        cursor = conn.execute(query, values)
+        conn.commit()
+        
+        # Check if update was successful
+        if cursor.rowcount > 0:
+            print(f"Successfully updated log event {log_id}")
+            return True
+        else:
+            print(f"No log event found with ID {log_id}")
+            return False
+            
+    except Exception as e:
+        print(f"Error updating log {log_id}: {e}")
+        return False
 
 def fetch_logs(q=None, category=None):
     query = "SELECT * FROM logs_definitions WHERE 1=1"
@@ -95,3 +199,99 @@ def fetch_versions(event_workflow):
 def delete_all_logs():
     conn.execute("DELETE FROM logs_definitions")
     conn.commit()
+
+# Additional utility functions for better database management
+
+def get_logs_count():
+    """
+    Get the total count of log events
+    Returns: Integer count of total log events
+    """
+    try:
+        cursor = conn.execute("SELECT COUNT(*) FROM logs_definitions")
+        count = cursor.fetchone()[0]
+        return count
+    except Exception as e:
+        print(f"Error getting logs count: {e}")
+        return 0
+
+def get_logs_by_creator(created_by):
+    """
+    Get all log events created by a specific user
+    Args:
+        created_by (str): The creator's name/ID
+    Returns: List of dictionaries containing log events
+    """
+    try:
+        query = "SELECT * FROM logs_definitions WHERE created_by = ? ORDER BY created_at DESC"
+        cursor = conn.execute(query, (created_by,))
+        rows = cursor.fetchall()
+        
+        # Get column names
+        column_names = [description[0] for description in cursor.description]
+        
+        # Convert to list of dictionaries
+        logs = []
+        for row in rows:
+            log_dict = dict(zip(column_names, row))
+            log_dict['id'] = log_dict['event_row_id']
+            logs.append(log_dict)
+        
+        return logs
+    except Exception as e:
+        print(f"Error retrieving logs by creator {created_by}: {e}")
+        return []
+
+def search_logs(search_term):
+    """
+    Search for log events based on description or workflow
+    Args:
+        search_term (str): The term to search for
+    Returns: List of dictionaries containing matching log events
+    """
+    try:
+        query = """
+            SELECT * FROM logs_definitions 
+            WHERE description LIKE ? OR event_workflow LIKE ? OR property_key LIKE ?
+            ORDER BY created_at DESC
+        """
+        search_pattern = f"%{search_term}%"
+        cursor = conn.execute(query, (search_pattern, search_pattern, search_pattern))
+        rows = cursor.fetchall()
+        
+        # Get column names
+        column_names = [description[0] for description in cursor.description]
+        
+        # Convert to list of dictionaries
+        logs = []
+        for row in rows:
+            log_dict = dict(zip(column_names, row))
+            log_dict['id'] = log_dict['event_row_id']
+            logs.append(log_dict)
+        
+        return logs
+    except Exception as e:
+        print(f"Error searching logs: {e}")
+        return []
+
+def delete_log_by_id(log_id):
+    """
+    Delete a specific log event by its ID
+    Args:
+        log_id (str): The event_row_id of the log event to delete
+    Returns: Boolean indicating success
+    """
+    try:
+        cursor = conn.execute("DELETE FROM logs_definitions WHERE event_row_id = ?", (log_id,))
+        conn.commit()
+        
+        if cursor.rowcount > 0:
+            print(f"Successfully deleted log event {log_id}")
+            return True
+        else:
+            print(f"No log event found with ID {log_id}")
+            return False
+            
+    except Exception as e:
+        print(f"Error deleting log {log_id}: {e}")
+        return False
