@@ -1,9 +1,13 @@
 import sqlite3
 import pandas as pd
 from datetime import datetime
+import os
 
-DB_FILE = "logs_definitions.db"
+os.makedirs(".streamlit", exist_ok=True)  # Ensure the directory exists
+DB_FILE = os.path.join(".streamlit", "logs_definitions.db")
+
 conn = sqlite3.connect(DB_FILE, check_same_thread=False)
+
 
 columns = [
     'description', 'reference', 'dev', 'qe', 'data', 'property_key',
