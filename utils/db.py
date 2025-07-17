@@ -4,11 +4,9 @@ from datetime import datetime
 import os
 
 
-# Create a persistent directory for your app data
-DB_DIR = os.path.expanduser("~/streamlit_app_data")  # User's home directory
-os.makedirs(DB_DIR, exist_ok=True)
+os.makedirs(".streamlit", exist_ok=True)  # Ensure the directory exists
+DB_FILE = os.path.join(".streamlit", "logs_definitions.db")
 
-DB_FILE = os.path.join(DB_DIR, "logs_definitions.db")
 conn = sqlite3.connect(DB_FILE, check_same_thread=False)
 
 
